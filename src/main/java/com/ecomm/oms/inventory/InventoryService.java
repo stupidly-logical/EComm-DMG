@@ -86,6 +86,30 @@ public class InventoryService {
         }
     }
 
+    /**
+     * Return an order's stock to availability on cancellation. CONFIRMED reservations (already
+     * decremented from on-hand) are added back; still-ACTIVE holds are simply released. Each
+     * reservation is moved to RELEASED so a repeated cancel is a no-op.
+     */
+    @Transactional
+    public void restock(List<InventoryReservation> reservations) {
+        for (InventoryReservation reservation : reservations) {
+            switch (reservation.getStatus()) {
+                case CONFIRMED -> {
+                    stockFor(reservation).addOnHand(reservation.getQuantity());
+                    reservation.markReleased();
+                }
+                case ACTIVE -> {
+                    stockFor(reservation).releaseReservation(reservation.getQuantity());
+                    reservation.markReleased();
+                }
+                case RELEASED -> {
+                    // already returned; nothing to do
+                }
+            }
+        }
+    }
+
     private StockLevel stockFor(InventoryReservation reservation) {
         return stockLevelRepository
                 .findByProductIdAndWarehouseId(
