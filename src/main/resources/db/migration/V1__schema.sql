@@ -1,0 +1,13 @@
+-- =============================================================================
+-- V1 — Core schema for the E-Commerce Order Management System.
+--
+-- This single migration owns the full schema and grows one vertical slice at a
+-- time as the system is built (auth → catalog/inventory → cart/pricing →
+-- order/payment → fulfillment → returns). Seed data lives in V2__seed.sql.
+--
+-- DDL is written to run unchanged on both PostgreSQL 16 (app) and H2 in
+-- PostgreSQL-compatibility mode (tests): identity columns, NUMERIC(19,2) money,
+-- TIMESTAMP, and TEXT only — no engine-specific types.
+-- =============================================================================
+
+-- (Domain tables are introduced by later slices.)
