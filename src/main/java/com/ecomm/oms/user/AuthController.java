@@ -8,6 +8,9 @@ import com.ecomm.oms.user.dto.LoginRequest;
 import com.ecomm.oms.user.dto.RegisterRequest;
 import com.ecomm.oms.user.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -33,19 +36,28 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
+    @SecurityRequirements
     @Operation(summary = "Register a new customer account and receive a JWT")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
     public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
     }
 
     @PostMapping("/login")
+    @SecurityRequirements
     @Operation(summary = "Exchange credentials for a JWT")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized")})
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
     }
 
     @GetMapping("/me")
     @Operation(summary = "Return the authenticated user's profile")
+    @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized")
     public UserResponse me(@CurrentUser AuthPrincipal principal) {
         return userRepository.findById(principal.userId())
                 .map(UserResponse::from)

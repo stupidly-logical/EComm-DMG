@@ -5,6 +5,9 @@ import com.ecomm.oms.inventory.dto.StockLevelResponse;
 import com.ecomm.oms.inventory.dto.WarehouseRequest;
 import com.ecomm.oms.inventory.dto.WarehouseResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,39 +38,69 @@ public class WarehouseController {
 
     @GetMapping
     @Operation(summary = "List warehouses by allocation priority")
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden")})
     public List<WarehouseResponse> list() {
         return warehouseService.list().stream().map(WarehouseResponse::from).toList();
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a warehouse by id")
-    public WarehouseResponse get(@PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
+    public WarehouseResponse get(@Parameter(description = "Warehouse id") @PathVariable Long id) {
         return WarehouseResponse.from(warehouseService.get(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a warehouse")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
     public WarehouseResponse create(@Valid @RequestBody WarehouseRequest request) {
         return WarehouseResponse.from(warehouseService.create(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a warehouse")
-    public WarehouseResponse update(@PathVariable Long id, @Valid @RequestBody WarehouseRequest request) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public WarehouseResponse update(@Parameter(description = "Warehouse id") @PathVariable Long id,
+                                    @Valid @RequestBody WarehouseRequest request) {
         return WarehouseResponse.from(warehouseService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete a warehouse")
-    public void delete(@PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public void delete(@Parameter(description = "Warehouse id") @PathVariable Long id) {
         warehouseService.delete(id);
     }
 
     @PostMapping("/{id}/stock")
     @Operation(summary = "Set the on-hand quantity of a product at this warehouse")
-    public StockLevelResponse adjustStock(@PathVariable Long id,
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public StockLevelResponse adjustStock(@Parameter(description = "Warehouse id") @PathVariable Long id,
                                           @Valid @RequestBody StockAdjustmentRequest request) {
         return StockLevelResponse.from(warehouseService.adjustStock(id, request));
     }

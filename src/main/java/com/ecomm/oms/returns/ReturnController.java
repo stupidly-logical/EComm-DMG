@@ -5,6 +5,9 @@ import com.ecomm.oms.returns.dto.ReturnResponse;
 import com.ecomm.oms.security.AuthPrincipal;
 import com.ecomm.oms.security.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,8 +35,14 @@ public class ReturnController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('CUSTOMER')")
     @Operation(summary = "Request a return for a delivered order")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "422", ref = "#/components/responses/UnprocessableEntity")})
     public ReturnResponse requestReturn(@CurrentUser AuthPrincipal me,
-                                        @PathVariable Long orderId,
+                                        @Parameter(description = "Order id") @PathVariable Long orderId,
                                         @Valid @RequestBody CreateReturnRequest request) {
         return returnService.requestReturn(me, orderId, request);
     }
@@ -41,21 +50,38 @@ public class ReturnController {
     @GetMapping("/returns/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @Operation(summary = "Get a return request (own for customers; any for admin)")
-    public ReturnResponse get(@CurrentUser AuthPrincipal me, @PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
+    public ReturnResponse get(@CurrentUser AuthPrincipal me,
+                              @Parameter(description = "Return request id") @PathVariable Long id) {
         return returnService.get(id, me);
     }
 
     @PostMapping("/returns/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Approve a return: restock, issue refund, mark order RETURNED")
-    public ReturnResponse approve(@CurrentUser AuthPrincipal me, @PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public ReturnResponse approve(@CurrentUser AuthPrincipal me,
+                                  @Parameter(description = "Return request id") @PathVariable Long id) {
         return returnService.approve(id, me.email());
     }
 
     @PostMapping("/returns/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Reject a return request")
-    public ReturnResponse reject(@CurrentUser AuthPrincipal me, @PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public ReturnResponse reject(@CurrentUser AuthPrincipal me,
+                                 @Parameter(description = "Return request id") @PathVariable Long id) {
         return returnService.reject(id, me.email());
     }
 }
