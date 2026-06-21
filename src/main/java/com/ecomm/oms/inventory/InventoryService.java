@@ -110,6 +110,20 @@ public class InventoryService {
         }
     }
 
+    /**
+     * Add units back to on-hand at a specific warehouse (restock on return). The stock row is
+     * created if the product was never stocked there.
+     */
+    @Transactional
+    public void addStock(com.ecomm.oms.catalog.Product product, com.ecomm.oms.inventory.Warehouse warehouse,
+                         int quantity) {
+        StockLevel stock = stockLevelRepository
+                .findByProductIdAndWarehouseId(product.getId(), warehouse.getId())
+                .orElseGet(() -> new StockLevel(product, warehouse, 0));
+        stock.addOnHand(quantity);
+        stockLevelRepository.save(stock);
+    }
+
     private StockLevel stockFor(InventoryReservation reservation) {
         return stockLevelRepository
                 .findByProductIdAndWarehouseId(

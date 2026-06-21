@@ -27,4 +27,9 @@ public class MockPaymentGateway implements PaymentGateway {
             return PaymentResult.approved("MOCK-" + UUID.randomUUID());
         });
     }
+
+    @Override
+    public RefundResult refund(String idempotencyKey, java.math.BigDecimal amount) {
+        return new RefundResult(true, "MOCK-REFUND-" + UUID.randomUUID());
+    }
 }
