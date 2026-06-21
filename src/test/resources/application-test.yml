@@ -1,10 +1,15 @@
 spring:
   datasource:
     # H2 in PostgreSQL compatibility mode; Flyway migrations run against it unchanged.
-    url: jdbc:h2:mem:oms;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    # LOCK_TIMEOUT gives SELECT ... FOR UPDATE contenders time to wait (concurrency test).
+    url: jdbc:h2:mem:oms;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000
     username: sa
     password: ""
     driver-class-name: org.h2.Driver
+    hikari:
+      # Must exceed the concurrency-test thread count so threads never starve for a
+      # connection while holding/awaiting a row lock.
+      maximum-pool-size: 24
   jpa:
     hibernate:
       ddl-auto: validate
