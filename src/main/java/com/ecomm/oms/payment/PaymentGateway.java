@@ -10,7 +10,13 @@ public interface PaymentGateway {
 
     PaymentResult charge(ChargeRequest request);
 
+    /** Refund (all or part of) a previous charge. The mock always succeeds. */
+    RefundResult refund(String idempotencyKey, BigDecimal amount);
+
     record ChargeRequest(String idempotencyKey, BigDecimal amount, String token, String method) {
+    }
+
+    record RefundResult(boolean succeeded, String gatewayRef) {
     }
 
     record PaymentResult(boolean approved, String gatewayRef, String declineReason) {

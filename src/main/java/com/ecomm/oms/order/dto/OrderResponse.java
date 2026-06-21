@@ -20,6 +20,7 @@ public record OrderResponse(
         List<OrderItemResponse> items) {
 
     public record OrderItemResponse(
+            Long id,
             Long productId,
             String sku,
             String name,
@@ -32,6 +33,7 @@ public record OrderResponse(
 
         static OrderItemResponse from(OrderItem item) {
             return new OrderItemResponse(
+                    item.getId(),
                     item.getProduct().getId(),
                     item.getProductSku(),
                     item.getProductName(),
