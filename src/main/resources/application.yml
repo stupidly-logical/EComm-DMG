@@ -41,8 +41,10 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
-# Application-specific configuration (consumed by typed @ConfigurationProperties later).
+# Application-specific configuration (consumed by typed @ConfigurationProperties).
 oms:
+  pricing:
+    region: ${PRICING_REGION:US}
   jwt:
     # Override in real environments. 256-bit base64 secret for HS256.
     secret: ${JWT_SECRET:Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1zZWNyZXQtMzJieXRlcyE=}

@@ -30,7 +30,9 @@ com.ecomm.oms.<module>/
   `BigDecimal` `NUMERIC(19,2)`. Add table + columns to `db/migration/V1__schema.sql`
   using portable DDL (identity columns, `NUMERIC(19,2)`, `TIMESTAMP`, `TEXT`,
   `VARCHAR` — runs on both PostgreSQL and H2). `ddl-auto=validate`, so the migration and
-  the entity must agree.
+  the entity must agree. **Avoid reserved-word column names** (`value`, `user`, `order`,
+  `type` is borderline) — they parse on PostgreSQL but break on H2; rename the column
+  (e.g. `value` → `discount_value`) and map it with `@Column(name = …)`.
 - **Repository**: Spring Data interface. For locked reads use
   `@Lock(LockModeType.PESSIMISTIC_WRITE)` + `@Query`.
 - **Service**: `@Service`; annotate write methods `@Transactional` (read paths
