@@ -8,6 +8,9 @@ import com.ecomm.oms.order.dto.OrderResponse;
 import com.ecomm.oms.security.AuthPrincipal;
 import com.ecomm.oms.security.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,8 +43,15 @@ public class FulfillmentController {
     @PostMapping("/fulfillment/status")
     @PreAuthorize("hasRole('WAREHOUSE_STAFF')")
     @Operation(summary = "Advance an order's fulfillment status (PACKED → SHIPPED → DELIVERED)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict"),
+            @ApiResponse(responseCode = "422", ref = "#/components/responses/UnprocessableEntity")})
     public OrderResponse advance(@CurrentUser AuthPrincipal me,
-                                 @PathVariable Long orderId,
+                                 @Parameter(description = "Order id") @PathVariable Long orderId,
                                  @Valid @RequestBody FulfillmentStatusRequest request) {
         return OrderResponse.from(
                 fulfillmentService.advanceStatus(orderId, request.status(), me.email()));
@@ -50,9 +60,14 @@ public class FulfillmentController {
     @PutMapping("/shipments/{shipmentId}/tracking")
     @PreAuthorize("hasRole('WAREHOUSE_STAFF')")
     @Operation(summary = "Set carrier and tracking number on a shipment")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
     public ShipmentResponse updateTracking(@CurrentUser AuthPrincipal me,
-                                           @PathVariable Long orderId,
-                                           @PathVariable Long shipmentId,
+                                           @Parameter(description = "Order id") @PathVariable Long orderId,
+                                           @Parameter(description = "Shipment id") @PathVariable Long shipmentId,
                                            @Valid @RequestBody TrackingUpdateRequest request) {
         return ShipmentResponse.from(fulfillmentService.updateTracking(
                 orderId, shipmentId, request.carrier(), request.trackingNumber(), me.email()));
@@ -61,7 +76,12 @@ public class FulfillmentController {
     @GetMapping("/shipments")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN', 'WAREHOUSE_STAFF')")
     @Operation(summary = "List shipments for an order (own order for customers)")
-    public List<ShipmentResponse> shipments(@CurrentUser AuthPrincipal me, @PathVariable Long orderId) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
+    public List<ShipmentResponse> shipments(@CurrentUser AuthPrincipal me,
+                                            @Parameter(description = "Order id") @PathVariable Long orderId) {
         orderService.loadVisible(orderId, me); // enforces ownership/visibility
         return fulfillmentService.shipmentsForOrder(orderId).stream()
                 .map(ShipmentResponse::from)

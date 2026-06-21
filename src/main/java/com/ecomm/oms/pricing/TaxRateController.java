@@ -3,6 +3,9 @@ package com.ecomm.oms.pricing;
 import com.ecomm.oms.pricing.dto.TaxRateRequest;
 import com.ecomm.oms.pricing.dto.TaxRateResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,6 +35,9 @@ public class TaxRateController {
 
     @GetMapping
     @Operation(summary = "List tax rates")
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden")})
     public List<TaxRateResponse> list() {
         return taxRateService.list().stream().map(TaxRateResponse::from).toList();
     }
@@ -39,13 +45,24 @@ public class TaxRateController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a tax rate for a category/region")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
     public TaxRateResponse create(@Valid @RequestBody TaxRateRequest request) {
         return TaxRateResponse.from(taxRateService.create(request));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a tax rate's percent")
-    public TaxRateResponse update(@PathVariable Long id, @Valid @RequestBody TaxRateRequest request) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
+    public TaxRateResponse update(@Parameter(description = "Tax rate id") @PathVariable Long id,
+                                  @Valid @RequestBody TaxRateRequest request) {
         return TaxRateResponse.from(taxRateService.update(id, request));
     }
 }

@@ -176,6 +176,14 @@ end-to-end).
 `ADMIN` / `CUSTOMER` / `WAREHOUSE_STAFF` are roles; **public** needs no token. All errors are
 RFC-7807 `ProblemDetail` JSON with a stable `code`, `status`, and `timestamp`.
 
+The same contract is published as a live **OpenAPI** document at `/v3/api-docs` and browsable
+via **Swagger UI** (`/swagger-ui.html`). The annotations are kept accurate by the
+`api-docs-sync` skill and guarded by `OpenApiDocsIT`: public endpoints are unsecured in the
+doc, secured ones inherit the global JWT bearer requirement, and each operation lists the
+error responses it can return (referencing a shared `ProblemDetail` schema). Click
+**Authorize** in Swagger UI and paste a token from `POST /api/auth/login` to call secured
+endpoints.
+
 ### Auth — `/api/auth`
 | Method | Path | Access | Description |
 |---|---|---|---|

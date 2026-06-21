@@ -2,6 +2,8 @@ package com.ecomm.oms.user;
 
 import com.ecomm.oms.user.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,9 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "List all users (admin only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden")})
     public List<UserResponse> list() {
         return userRepository.findAll(Sort.by("id")).stream()
                 .map(UserResponse::from)

@@ -3,6 +3,10 @@ package com.ecomm.oms.catalog;
 import com.ecomm.oms.catalog.dto.CategoryRequest;
 import com.ecomm.oms.catalog.dto.CategoryResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,14 +35,17 @@ public class CategoryController {
     }
 
     @GetMapping
+    @SecurityRequirements
     @Operation(summary = "List all categories")
     public List<CategoryResponse> list() {
         return categoryService.list().stream().map(CategoryResponse::from).toList();
     }
 
     @GetMapping("/{id}")
+    @SecurityRequirements
     @Operation(summary = "Get a category by id")
-    public CategoryResponse get(@PathVariable Long id) {
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")
+    public CategoryResponse get(@Parameter(description = "Category id") @PathVariable Long id) {
         return CategoryResponse.from(categoryService.get(id));
     }
 
@@ -46,6 +53,11 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a category (admin only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")})
     public CategoryResponse create(@Valid @RequestBody CategoryRequest request) {
         return CategoryResponse.from(categoryService.create(request));
     }
@@ -53,7 +65,14 @@ public class CategoryController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a category (admin only)")
-    public CategoryResponse update(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", ref = "#/components/responses/BadRequest"),
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public CategoryResponse update(@Parameter(description = "Category id") @PathVariable Long id,
+                                   @Valid @RequestBody CategoryRequest request) {
         return CategoryResponse.from(categoryService.update(id, request));
     }
 
@@ -61,7 +80,12 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a category (admin only)")
-    public void delete(@PathVariable Long id) {
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", ref = "#/components/responses/Unauthorized"),
+            @ApiResponse(responseCode = "403", ref = "#/components/responses/Forbidden"),
+            @ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound"),
+            @ApiResponse(responseCode = "409", ref = "#/components/responses/Conflict")})
+    public void delete(@Parameter(description = "Category id") @PathVariable Long id) {
         categoryService.delete(id);
     }
 }
