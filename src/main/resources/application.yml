@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: oms
+  # Default runtime profile targets PostgreSQL. Tests activate the "test" profile (H2).
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/oms}
+    username: ${DB_USERNAME:oms}
+    password: ${DB_PASSWORD:oms}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Schema is owned by Flyway; Hibernate only validates entity/table agreement.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        format_sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+# Application-specific configuration (consumed by typed @ConfigurationProperties later).
+oms:
+  jwt:
+    # Override in real environments. 256-bit base64 secret for HS256.
+    secret: ${JWT_SECRET:Y2hhbmdlLW1lLXRoaXMtaXMtYS1kZXYtb25seS1zZWNyZXQtMzJieXRlcyE=}
+    issuer: oms
+    expiry-minutes: ${JWT_EXPIRY_MINUTES:120}
+
+logging:
+  level:
+    org.flywaydb: INFO
