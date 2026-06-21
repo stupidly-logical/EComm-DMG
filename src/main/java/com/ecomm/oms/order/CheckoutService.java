@@ -13,6 +13,7 @@ import com.ecomm.oms.payment.PaymentRepository;
 import com.ecomm.oms.payment.PaymentService;
 import com.ecomm.oms.pricing.PricedCart;
 import com.ecomm.oms.pricing.PricingService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,16 +45,19 @@ public class CheckoutService {
     private final PaymentService paymentService;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CheckoutService(CartService cartService, PricingService pricingService,
                            InventoryService inventoryService, PaymentService paymentService,
-                           OrderRepository orderRepository, PaymentRepository paymentRepository) {
+                           OrderRepository orderRepository, PaymentRepository paymentRepository,
+                           ApplicationEventPublisher eventPublisher) {
         this.cartService = cartService;
         this.pricingService = pricingService;
         this.inventoryService = inventoryService;
         this.paymentService = paymentService;
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -113,6 +117,9 @@ public class CheckoutService {
             priced.appliedCoupon().redeem();
         }
         cart.setStatus(CartStatus.CHECKED_OUT);
+
+        // Hand off downstream work (routing, notification, audit) to the AFTER_COMMIT pipeline.
+        eventPublisher.publishEvent(new OrderPlacedEvent(order.getId(), customerId));
 
         return OrderResponse.from(order);
     }

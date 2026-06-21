@@ -1,6 +1,9 @@
 package com.ecomm.oms.order;
 
+import com.ecomm.oms.audit.AuditService;
 import com.ecomm.oms.common.error.NotFoundException;
+import com.ecomm.oms.inventory.InventoryReservationRepository;
+import com.ecomm.oms.inventory.InventoryService;
 import com.ecomm.oms.order.dto.OrderResponse;
 import com.ecomm.oms.security.AuthPrincipal;
 import com.ecomm.oms.user.Role;
@@ -18,9 +21,18 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final InventoryReservationRepository reservationRepository;
+    private final InventoryService inventoryService;
+    private final AuditService auditService;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository,
+                        InventoryReservationRepository reservationRepository,
+                        InventoryService inventoryService,
+                        AuditService auditService) {
         this.orderRepository = orderRepository;
+        this.reservationRepository = reservationRepository;
+        this.inventoryService = inventoryService;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -33,6 +45,20 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderResponse getForPrincipal(Long orderId, AuthPrincipal principal) {
         Order order = loadVisible(orderId, principal);
+        return OrderResponse.from(order);
+    }
+
+    /**
+     * Cancel an order the principal owns (or any, for admins) and return its stock to
+     * availability. Only legal from PLACED/CONFIRMED — {@link Order#transitionTo} rejects a
+     * cancel once the order has shipped with a 409.
+     */
+    @Transactional
+    public OrderResponse cancel(Long orderId, AuthPrincipal principal) {
+        Order order = loadVisible(orderId, principal);
+        order.transitionTo(OrderStatus.CANCELLED);
+        inventoryService.restock(reservationRepository.findByOrderId(orderId));
+        auditService.record("Order", orderId, "ORDER_CANCELLED", principal.email(), null);
         return OrderResponse.from(order);
     }
 

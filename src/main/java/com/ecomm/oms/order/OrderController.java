@@ -54,4 +54,11 @@ public class OrderController {
     public OrderResponse getOrder(@CurrentUser AuthPrincipal me, @PathVariable Long id) {
         return orderService.getForPrincipal(id, me);
     }
+
+    @PostMapping("/orders/{id}/cancel")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
+    @Operation(summary = "Cancel an order and restock (only before it ships)")
+    public OrderResponse cancel(@CurrentUser AuthPrincipal me, @PathVariable Long id) {
+        return orderService.cancel(id, me);
+    }
 }
