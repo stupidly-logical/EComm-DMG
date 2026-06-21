@@ -3,6 +3,7 @@ package com.ecomm.oms.common.error;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -74,6 +75,16 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
         return problem(HttpStatus.FORBIDDEN, "FORBIDDEN",
                 "You do not have permission to perform this action");
+    }
+
+    /**
+     * Database constraint breaches that slipped past service-level checks (FK-referenced
+     * deletes, unique-key races). Reported as a conflict rather than a 500.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
+        return problem(HttpStatus.CONFLICT, "CONSTRAINT_VIOLATION",
+                "The operation conflicts with related data");
     }
 
     /** Bad arguments surfaced from service-layer guard clauses. */
