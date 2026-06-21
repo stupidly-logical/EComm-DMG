@@ -16,6 +16,8 @@ spring:
     locations: classpath:db/migration
 
 oms:
+  pricing:
+    region: US
   jwt:
     secret: dGVzdC1zZWNyZXQtdGVzdC1zZWNyZXQtdGVzdC1zZWNyZXQtMzJieXRlcw==
     issuer: oms-test
